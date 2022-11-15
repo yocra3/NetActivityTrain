@@ -1,6 +1,6 @@
 {
-    "name": "nf-core/netactivitytrain",
-    "homePage": "https://github.com/nf-core/netactivitytrain",
+    "name": "yocra3/NetActivityTrain",
+    "homePage": "https://github.com/yocra3/NetActivityTrain",
     "repos": {
         "https://github.com/nf-core/modules.git": {
             "modules": {

@@ -1,5 +1,5 @@
 //
-// This file holds several functions specific to the main.nf workflow in the nf-core/netactivitytrain pipeline
+// This file holds several functions specific to the main.nf workflow in the yocra3/NetActivityTrain pipeline
 //
 
 class WorkflowMain {
@@ -22,7 +22,7 @@ class WorkflowMain {
     // Print help to screen if required
     //
     public static String help(workflow, params, log) {
-        def command = "nextflow run ${workflow.manifest.name} --input samplesheet.csv --genome GRCh37 -profile docker"
+        def command = "nextflow run ${workflow.manifest.name} --data_prefix SE_h5 --gene_mask gene_mask.txt --network network.py --network_params params.py -profile docker"
         def help_string = ''
         help_string += NfcoreTemplate.logo(workflow, params.monochrome_logs)
         help_string += NfcoreSchema.paramsHelp(workflow, params, command)

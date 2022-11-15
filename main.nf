@@ -1,9 +1,9 @@
 #!/usr/bin/env nextflow
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    nf-core/netactivitytrain
+    yocra3/NetActivityTrain
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Github : https://github.com/nf-core/netactivitytrain
+    Github : https://github.com/yocra3/NetActivityTrain
 
     Website: https://nf-co.re/netactivitytrain
     Slack  : https://nfcore.slack.com/channels/netactivitytrain
@@ -30,7 +30,7 @@ WorkflowMain.initialise(workflow, params, log)
 include { NETACTIVITYTRAIN } from './workflows/netactivitytrain'
 
 //
-// WORKFLOW: Run main nf-core/netactivitytrain analysis pipeline
+// WORKFLOW: Run main yocra3/NetActivityTrain analysis pipeline
 //
 workflow NFCORE_NETACTIVITYTRAIN {
     NETACTIVITYTRAIN ()

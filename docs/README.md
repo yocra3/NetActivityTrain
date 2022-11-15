@@ -1,6 +1,6 @@
-# nf-core/netactivitytrain: Documentation
+# yocra3/NetActivityTrain: Documentation
 
-The nf-core/netactivitytrain documentation is split into the following pages:
+The yocra3/NetActivityTrain documentation is split into the following pages:
 
 - [Usage](usage.md)
   - An overview of how the pipeline works, how to run it and a description of all of the different command-line flags.

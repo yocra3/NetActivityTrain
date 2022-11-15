@@ -1,5 +1,5 @@
 //
-// This file holds several functions specific to the workflow/netactivitytrain.nf in the nf-core/netactivitytrain pipeline
+// This file holds several functions specific to the workflow/netactivitytrain.nf in the yocra3/NetActivityTrain pipeline
 //
 
 import groovy.text.SimpleTemplateEngine

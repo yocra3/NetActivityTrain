@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/nf-core/netactivitytrain/master/nextflow_schema.json",
-    "title": "nf-core/netactivitytrain pipeline parameters",
+    "$id": "https://raw.githubusercontent.com/yocra3/NetActivityTrain/master/nextflow_schema.json",
+    "title": "yocra3/NetActivityTrain pipeline parameters",
     "description": "Pipeline to generate models for NetActivity",
     "type": "object",
     "definitions": {

@@ -1,4 +1,4 @@
-# nf-core/netactivitytrain: Output
+# yocra3/NetActivityTrain: Output
 
 ## Introduction
 
