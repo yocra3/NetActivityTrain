@@ -15,7 +15,7 @@ library(HDF5Array)
 ## Load files ####
 paths_names <- read.table("pathways_names.txt", header = TRUE)
 genes_names <- read.table("input_genes.txt", header = FALSE)
-weights <- h5read(paste0(prefix, "_model_weights.h5"),"weights_paths")
+weights <- h5read(paste0(prefix, "_model_weights.h5"),"weights_paths")p
 rownames(weights) <- paths_names$X0
 colnames(weights) <- genes_names$V1
 
