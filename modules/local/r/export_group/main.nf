@@ -9,7 +9,7 @@ process R_EXPORT_GROUP {
     label 'process_low'
     label 'process_medium_memory'
 
-    container 'yocra3/episignatures_rsession:1.3'
+    container 'yocra3/netactivitytrain_rsession:1.0'
 
     input:
     tuple val(prefix), path(hdf5), path(rds)
