@@ -1,63 +1,104 @@
 # yocra3/NetActivityTrain: Usage
 
-## :warning: Please read this documentation on the nf-core website: [https://nf-co.re/netactivitytrain/usage](https://nf-co.re/netactivitytrain/usage)
-
-> _Documentation of pipeline parameters is generated automatically from the pipeline schema and can no longer be found in markdown files._
-
 ## Introduction
 
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
+NetActivityTrain trains a sparsely-connected autoencoder to encode gene expression measurements into gene set activity scores. NetActivityTrain requires four elements: a gene expression dataset, a mapping between genes and gene sets and a network architecture and its configuration.
 
-## Samplesheet input
+## Gene expression dataset
 
-You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row as shown in the examples below.
+NetActivity requires that the gene expression data is normalized (counts are not accepted) and saved in a `HDF5SummarizedExperiment`. You can easily obtain these objects from R using `DESeq2` and `HDF5Array` packages:
+
+```R
+library(DESeq2)
+library(HDF5Array)
+
+dds <- DESeqDataSetFromMatrix(countData = counts,
+                              colData = phenotype,
+                              design = ~ 1)
+# Normalize data with Variant Stabilizing Transformation
+vst <- vst(dds, blind=FALSE)
+
+## Create HDF5SummarizedExperiment
+saveHDF5SummarizedExperiment(vst, prefix = "dataset_")
+```
+
+This command will generate two files: `dataset_assays.h5` and `dataset_se.rds`. They can be passed to NetActivityTrain with:
 
 ```bash
---input '[path to samplesheet file]'
+--data_prefix 'dataset_'
 ```
 
-### Multiple runs of the same sample
+### Group-based train-test split
 
-The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will concatenate the raw reads before performing any downstream analysis. Below is an example for the same sample sequenced across 3 lanes:
+NetActivityTrain divides the dataset in samples for training and samples for testing. NetActivityTrain can perform the splitting by balancing samples based on a variable. For instance, when training the model in GTEx, we decided to balance samples by tissue in train and test. If we would like NetActivityTrain to consider a variable for the splitting, we can add a column to the colData called `Group`:
 
-```console
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
+```R
+vst$Group <- phenotype_of_interest
 ```
 
-### Full samplesheet
 
-The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 3 columns to match those defined in the table below.
+## Gene set mapping
 
-A final samplesheet file consisting of both single- and paired-end data may look something like the one below. This is for 6 samples, where `TREATMENT_REP3` has been sequenced twice.
+NetActivityTrain requires a tab-delimited file with the mapping between genes and gene sets. This file should contain the columns Gene and GeneSetID:
 
-```console
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
-CONTROL_REP3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
-TREATMENT_REP1,AEG588A4_S4_L003_R1_001.fastq.gz,
-TREATMENT_REP2,AEG588A5_S5_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L004_R1_001.fastq.gz,
+| GeneSetID | Gene | 
+| --------- | ----- |
+| GO:0006734 |	ENSG00000248746 | 
+| GO:0006734 |	ENSG00000136872 |
+
+You can find an [example](../data/gene_map_mini.tsv) in the data folder. Notice that the identifiers of this file should map the identifiers in the rownames of the gene expression dataset.
+
+## Network definition
+
+NetActivityTrain requires a python file with the network definition and another file with the network configuration. 
+
+The network definition file consists of a the definition of a function called `model_generator_train`, with four arguments: `x_train`, `y_train`, `gene_mask` and `params`:
+
+```python
+def model_generator_train(x_train, y_train, gene_mask, params):
 ```
+`params` represents an object with the parameters that can be edited with the network configuration file. 
 
-| Column    | Description                                                                                                                                                                            |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sample`  | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
-| `fastq_1` | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
-| `fastq_2` | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
+Then, we have the model definition using keras. Here, the user can specify different network architectures. Nonetheless, the user should use the class `tfmot.sparsity.keras.ConstantSparsity` to achieve the sparsely-connected layer:
 
-An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
+```python
+  model = Sequential()
+  model.add(tfmot.sparsity.keras.prune_low_magnitude(Dense(gene_mask.shape[1],
+    input_dim = x_train.shape[1], activation = params.activation),
+    tfmot.sparsity.keras.ConstantSparsity(0.5, 1000000, end_step =  1000000, frequency = 100)))
+  if params.dense1_dropout:
+        model.add(Dropout(params.dense1_dropout))
+  model.add(Dense(x_train.shape[1]))
+```
+The additional layer of the `tfmot.sparsity.keras.ConstantSparsity` layer should be modified in order to set to 0 those connections of genes not present in a gene set:
+
+```python
+  ## Add gene mask
+  w = model.get_weights()
+  w[2] = gene_mask
+  model.set_weights(w)
+```
+Finally, we just need to define the optimization algorithm, the less and compile the model:
+
+```python
+  opt = Adam(learning_rate = params.alpha)
+
+  model.compile(loss='mse',
+    optimizer = opt,
+    metrics = ['mse'])
+  return model
+```
+Notice that all dependencies states in this file should be explictly loaded at the beggining of the file. An [example](../data/network_structure.py) of a network definition file can be found in the data folder. This definition file defines a sparsely-connected autoencoder with one layer. We recommend the users to use it as a template for other structure definitions.
+
+Finally, we can set the value of any variable defined using `params.` using the params file. This is very useful when testing different networks configurations or when aiming to test different trainings. 
+
 
 ## Running the pipeline
 
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run yocra3/NetActivityTrain --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile docker
+nextflow run yocra3/NetActivityTrain --data_prefix SE_h5 --gene_mask gene_mask.txt --network network.py --network_params params.py --outdir <OUTDIR> -profile docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
@@ -95,7 +136,7 @@ This version number will be logged in reports when you run the pipeline, so that
 
 Use this parameter to choose a configuration profile. Profiles can give configuration presets for different compute environments.
 
-Several generic profiles are bundled with the pipeline which instruct the pipeline to use software packaged using different methods (Docker, Singularity, Podman, Shifter, Charliecloud, Conda) - see below.
+Several generic profiles are bundled with the pipeline which instruct the pipeline to use software packaged using different methods (Docker, Singularity) - see below.
 
 > We highly recommend the use of Docker or Singularity containers for full pipeline reproducibility, however when this is not possible, Conda is also supported.
 
@@ -113,14 +154,6 @@ If `-profile` is not specified, the pipeline will run locally and expect all sof
   - A generic configuration profile to be used with [Docker](https://docker.com/)
 - `singularity`
   - A generic configuration profile to be used with [Singularity](https://sylabs.io/docs/)
-- `podman`
-  - A generic configuration profile to be used with [Podman](https://podman.io/)
-- `shifter`
-  - A generic configuration profile to be used with [Shifter](https://nersc.gitlab.io/development/shifter/how-to-use/)
-- `charliecloud`
-  - A generic configuration profile to be used with [Charliecloud](https://hpc.github.io/charliecloud/)
-- `conda`
-  - A generic configuration profile to be used with [Conda](https://conda.io/docs/). Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker, Singularity, Podman, Shifter or Charliecloud.
 
 ### `-resume`
 
