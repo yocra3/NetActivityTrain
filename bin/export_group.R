@@ -17,7 +17,7 @@ library(SummarizedExperiment)
 SE <- loadHDF5SummarizedExperiment(dir = "./", prefix = setPrefix)
 
 if ("Group" %in% colnames(colData(SE))){
-  group <- SE$group
+  group <- SE$Group
 } else {
   group <- rep("Unique", ncol(SE))
 }
