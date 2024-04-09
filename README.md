@@ -49,7 +49,7 @@ yocra3/NetActivityTrain was originally written by @yocra3.
 
 ## Support
 
-For further information or help, don't hesitate to contact Carlos Ruiz at carlos.ruiza@upf.edu.
+For further information or help, don't hesitate to contact Carlos Ruiz at [cruizarenas@unav.es](mailto:cruizarenas@unav.es).
 
 ## Citations
 
