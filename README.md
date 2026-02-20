@@ -53,10 +53,9 @@ For further information or help, don't hesitate to contact Carlos Ruiz at [cruiz
 
 ## Citations
 
-<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
-<!-- If you use  yocra3/NetActivityTrain for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
+If you use  yocra3/NetActivityTrain for your analysis, please cite it using: 
 
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
+Ruiz-Arenas C, Marín-Goñi I, Wang L, Ochoa I, Pérez-Jurado LA, Hernaez M. NetActivity enhances transcriptional signals by combining gene expression into robust gene set activity scores through interpretable autoencoders. Nucleic Acids Res. 2024 May 22;52(9):e44. doi: 10.1093/nar/gkae197. PMID: 38597610; PMCID: PMC11109970.
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
@@ -67,3 +66,4 @@ You can cite the `nf-core` publication as follows:
 > Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.
 >
 > _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).
+
